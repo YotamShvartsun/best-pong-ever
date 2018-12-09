@@ -210,16 +210,16 @@ proc handle_input
         call shutdown
         jmp d ; exit the program
     up1:
-        add loc1, 5
-        ret
-    up2:
-        add loc2, 5
-        ret
-    down1:
         sub loc1, 5
         ret
-    down2:
+    up2:
         sub loc2, 5
+        ret
+    down1:
+        add loc1, 5
+        ret
+    down2:
+        add loc2, 5
         ret
 endp handle_input
 
