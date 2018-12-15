@@ -2,10 +2,16 @@ IDEAL
 MODEL small
 STACK 100h
 DATASEG
+; consts:
 BsizeX dw 4
 BsizeY dw 4
+; ctrl locations
 loc1 dw 50
 loc2 dw 50
+
+; ball location
+BallX dw 120
+BallY dw 120
 
 ; key codes:
 NO_KEY equ 0
@@ -76,7 +82,7 @@ proc draw_ball
 
     mov ax, [bp + 4] ; X
     mov bx, [bp + 6] ; Y
-    mov dx, [bp + 8]
+    mov dx, [bp + 8] ; color
     mov cx, [BsizeX]
     b_l:
         push ax
@@ -210,16 +216,31 @@ proc handle_input
         call shutdown
         jmp d ; exit the program
     up1:
+        ; make sure ctrl can go up
+        cmp loc1, 5h
+        js nu1
         sub loc1, 5
+        nu1:
         ret
     up2:
+        ; make sure ctrl2 can go up
+        cmp loc2, 5h
+        js nu2
         sub loc2, 5
+        nu2:
         ret
     down1:
+        ; make sure ctrl1 can go down
+        cmp loc1, 155d
+        jg nd1
         add loc1, 5
+        nd1:
         ret
     down2:
+        cmp loc2, 155d
+        jg nd2
         add loc2, 5
+        nd2:
         ret
 endp handle_input
 
@@ -227,22 +248,26 @@ proc draw_board
     push bp
     mov bp, sp
     push ax
+    draw_b:
+        
     ; draw ctrl1
-    push 500
-    push 2
-    push loc1
-    call draw_ctrl
-    pop ax
-    pop ax
-    pop ax
+    draw_1:
+        push 50
+        push 2
+        push loc1
+        call draw_ctrl
+        pop ax
+        pop ax
+        pop ax
     ; draw ctrl2
-    push 500
-    push 298
-    push loc2
-    call draw_ctrl
-    pop ax
-    pop ax
-    pop ax
+    draw_2:
+        push 50
+        push 315
+        push loc2
+        call draw_ctrl
+        pop ax
+        pop ax
+        pop ax
     pop ax
     pop bp
     ret
