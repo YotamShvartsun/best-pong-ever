@@ -10,9 +10,18 @@ loc1 dw 50
 loc2 dw 50
 
 ; ball location
-BallX dw 120
+BallX dw 50
 BallY dw 120
+; in order to avoid negetive numbers
+BallUp db 1
+BallLeft db 1
 
+; ball speed
+XSpeed dw 5
+YSpeed dw 5
+
+; ball shuld update:
+nextUpdate db 0
 ; key codes:
 NO_KEY equ 0
 UP_CTRL_1 equ 1
@@ -27,6 +36,58 @@ proc startup
     int 10h
     ret
 endp startup
+proc moveBall
+; moves the ball in both axias
+    cmp BallUp, 0 ; if ballUp=0, add
+    je ballU
+    mov bx, YSpeed
+    sub BallY, bx
+    jmp next_b_x
+    BallU:
+        mov bx, YSpeed 
+        add BallY, bx
+    next_b_x:
+    cmp BallLeft, 0
+    je BallL
+    mov bx, XSpeed
+    sub BallX, bx
+    ret
+    BallL:
+        mov bx, XSpeed
+        add BallX, bx
+    ret
+endp moveBall
+proc checkScore ; checks if player scored and prints a message
+    mov ax, [BallX]
+    cmp ax, 2
+    js Scored1
+    cmp ax, 315
+    jg Scored2
+    ret
+    Scored1:
+        mov ax, 1
+        jmp pMsg
+    Scored2:
+        mov ax, 0
+    pMsg:
+    call shutdown
+    ; print message:
+    cmp ax, 0
+    je msg1
+    jne msg2
+    msg1:
+        mov dx, offset msg1
+        jmp printM
+    msg2:
+        mov dx, offset msg2
+    printM:
+    mov ah, 09
+    int 16h
+    ; wait for key
+    mov ah, 07
+    int 21h
+    ret
+endp checkScore
 
 proc draw_pixle
 ; draws a pixle in the loction spacified in params
@@ -166,7 +227,10 @@ proc refrash
     ret
 endp refrash
 proc getInput ; result will be in ax
-    mov ah, 00
+    mov ah, 1
+    int 16h
+    jz next_k
+    mov ah, 0
     int 16h
     cmp ah, 1 ; esc
     je esc_pressed
@@ -194,6 +258,8 @@ proc getInput ; result will be in ax
     s_pressed: 
         mov ax, DOWN_CTRL_2
         ret
+    next_k:
+        ret
 endp getInput
 
 proc handle_input
@@ -211,6 +277,8 @@ proc handle_input
     je down1
     cmp ax, DOWN_CTRL_2
     je down2
+    mov ah,08h              
+    int 21h
     ret
     die:
         call shutdown
@@ -249,10 +317,16 @@ proc draw_board
     mov bp, sp
     push ax
     draw_b:
-        
+        push 400
+        push BallY
+        push BallX
+        call draw_ball
+        pop ax
+        pop ax
+        pop ax
     ; draw ctrl1
     draw_1:
-        push 50
+        push 500
         push 2
         push loc1
         call draw_ctrl
@@ -261,7 +335,7 @@ proc draw_board
         pop ax
     ; draw ctrl2
     draw_2:
-        push 50
+        push 500
         push 315
         push loc2
         call draw_ctrl
@@ -272,7 +346,31 @@ proc draw_board
     pop bp
     ret
 endp draw_board
-
+proc shouldUpadteLoad
+    mov ah, 2Ch
+    int 21h
+    mov nextUpdate, dl
+    add nextUpdate, 50
+    ret
+endp shouldUpadteLoad
+proc updateBall
+    mov ah, 2Ch
+    int 21h
+    cmp dl, nextUpdate
+    jb endF
+    call moveBall
+    call shouldUpadteLoad
+    endF:
+    ret
+endp updateBall
+proc delay
+    mov cx, 00
+    mov dx, 0F230h
+    mov al, 0
+    mov ah, 86h
+    int 15h
+    ret
+endp delay
 start:
 	mov ax, @data
 	mov ds, ax
@@ -280,13 +378,16 @@ start:
 ; Your code here
 ; --------------------------
 	call startup
-    
+    call shouldUpadteLoad
+
     game_l:
         call draw_board 
         call getInput
         push ax
         call handle_input
         pop ax
+        ;call moveBall
+        call delay
         call refrash
     jmp game_l   
         
