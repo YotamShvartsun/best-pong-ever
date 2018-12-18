@@ -44,6 +44,9 @@ proc moveBall
     sub BallY, bx
     jmp next_b_x
     BallU:
+        cmp BallY, 153d
+        js do_add1
+        do_add1:
         mov bx, YSpeed 
         add BallY, bx
     next_b_x:
@@ -95,10 +98,10 @@ proc draw_pixle
     push bp
     mov bp, sp
     
-    mov al, [bp + 2] ; color
+    mov ax, [bp + 4] ; color
     mov bl, 0 ; page shuold be 0 for some reason
-    mov cx, [bp + 4] ; X
-    mov dx, [bp + 6] ; Y
+    mov cx, [bp + 6] ; X
+    mov dx, [bp + 8] ; Y
     mov ah, 0ch
     int 10h
 
@@ -121,15 +124,16 @@ proc draw_line
         push cx
         push dx
 
-        push dx
         push ax
         push bx
+        push dx
         call draw_pixle
 
         pop dx
         pop cx
         pop bx
         pop ax
+
         inc ax
         loop d_l
     pop bp
@@ -184,7 +188,7 @@ proc draw_ctrl
         push bx
         push cx
 
-        push dx ; color
+        push 15 ; color
         push 40 ; size
         push bx ; Y
         push ax ; X
@@ -233,6 +237,8 @@ proc getInput ; result will be in ax
     mov ah, 0
     int 16h
     cmp ah, 1 ; esc
+    je esc_pressed
+    cmp ah, 1bh ; esc
     je esc_pressed
     cmp ah, 48h
     je up_pressed
@@ -365,7 +371,7 @@ proc updateBall
 endp updateBall
 proc delay
     mov cx, 00
-    mov dx, 0F230h
+    mov dx, 08235h
     mov al, 0
     mov ah, 86h
     int 15h
