@@ -5,6 +5,10 @@ DATASEG
 ; consts:
 BsizeX dw 4
 BsizeY dw 4
+
+; render helper:
+shuoldRender db 1
+
 ; ctrl locations
 loc1 dw 50
 loc2 dw 50
@@ -273,6 +277,7 @@ proc handle_input
     mov bp, sp
     mov ax, [bp + 4] ; input
     pop bp
+    mov [shuoldRender], 1
     cmp ax, EXIT
     je die
     cmp ax, UP_CTRL_1
@@ -283,6 +288,7 @@ proc handle_input
     je down1
     cmp ax, DOWN_CTRL_2
     je down2
+    mov [shuoldRender], 0
     mov ah,08h              
     int 21h
     ret
@@ -322,14 +328,6 @@ proc draw_board
     push bp
     mov bp, sp
     push ax
-    draw_b:
-        push 400
-        push BallY
-        push BallX
-        call draw_ball
-        pop ax
-        pop ax
-        pop ax
     ; draw ctrl1
     draw_1:
         push 500
@@ -352,23 +350,7 @@ proc draw_board
     pop bp
     ret
 endp draw_board
-proc shouldUpadteLoad
-    mov ah, 2Ch
-    int 21h
-    mov nextUpdate, dl
-    add nextUpdate, 50
-    ret
-endp shouldUpadteLoad
-proc updateBall
-    mov ah, 2Ch
-    int 21h
-    cmp dl, nextUpdate
-    jb endF
-    call moveBall
-    call shouldUpadteLoad
-    endF:
-    ret
-endp updateBall
+
 proc delay
     mov cx, 00
     mov dx, 08235h
@@ -377,6 +359,7 @@ proc delay
     int 15h
     ret
 endp delay
+
 start:
 	mov ax, @data
 	mov ds, ax
@@ -384,16 +367,42 @@ start:
 ; Your code here
 ; --------------------------
 	call startup
-    call shouldUpadteLoad
 
     game_l:
-        call draw_board 
+
+        cmp shuoldRender, 0
+        jne renderAll
+        je noRender
+        renderAll:
+            call draw_board
+            mov [shuoldRender], 0
+        noRender:
+
+        ; draw ball:
+        push 400
+        push BallY
+        push BallX
+        call draw_ball
+        pop ax
+        pop ax
+        pop ax
+        ; get input:
         call getInput
         push ax
         call handle_input
         pop ax
         ;call moveBall
         call delay
+        ; clear the ball
+        push 00
+        push BallY
+        push BallX
+        call draw_ball
+        pop ax
+        pop ax
+        pop ax
+        cmp [shuoldRender], 0
+        je game_l
         call refrash
     jmp game_l   
         
