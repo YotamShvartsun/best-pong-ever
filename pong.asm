@@ -369,7 +369,7 @@ start:
 	call startup
 
     game_l:
-
+        ; render?
         cmp shuoldRender, 0
         jne renderAll
         je noRender
@@ -379,18 +379,20 @@ start:
         noRender:
 
         ; draw ball:
-        push 400
+        push 0Bh
         push BallY
         push BallX
         call draw_ball
         pop ax
         pop ax
         pop ax
+
         ; get input:
         call getInput
         push ax
         call handle_input
         pop ax
+
         ;call moveBall
         call delay
         ; clear the ball
