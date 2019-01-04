@@ -10,7 +10,11 @@
                 "${relativeFile}",
                 "../../${relativeFile}"
             ],
-            "problemMatcher":[]
+            "problemMatcher": [],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
         }
     ]
 }

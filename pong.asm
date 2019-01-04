@@ -1,6 +1,7 @@
 IDEAL
 MODEL small
 STACK 100h
+LOCALS @@
 DATASEG
 ; consts:
 BsizeX dw 4
@@ -38,27 +39,23 @@ proc startup
 endp startup
 proc moveBall
 ; moves the ball in both axias
-    cmp BallUp, 0 ; if ballUp=0, add
-    je ballU
-    mov bx, YSpeed
-    sub BallY, bx
-    jmp next_b_x
-    BallU:
-        cmp BallY, 153d
-        js do_add1
-        do_add1:
-        mov bx, YSpeed 
-        add BallY, bx
-    next_b_x:
-    cmp BallLeft, 0
-    je BallL
-    mov bx, XSpeed
-    sub BallX, bx
-    ret
-    BallL:
-        mov bx, XSpeed
-        add BallX, bx
-    ret
+    cmp [BallUp], 0
+    je @@goUp
+    add [BallY], 5
+    jmp @@nextX
+    @@goUp:
+        sub [BallY], 5
+    @@nextX:
+    cmp [BallLeft], 0
+    je @@goLeft
+    add [BallX], 5
+    jmp @@initNextR
+    @@goLeft:
+        sub [BallX], 5
+    @@initNextR:
+    cmp [BallX], 315
+    jge @@setLeft0
+    
 endp moveBall
 proc checkScore ; checks if player scored and prints a message
     mov ax, [BallX]
@@ -80,10 +77,10 @@ proc checkScore ; checks if player scored and prints a message
     jne msg2
     msg1:
         mov dx, offset msg1
-        jmp printM
+        jmp @@printM
     msg2:
         mov dx, offset msg2
-    printM:
+    @@printM:
     mov ah, 09
     int 16h
     ; wait for key
@@ -118,7 +115,7 @@ proc draw_line
     mov cx, [bp + 8];LEN
     mov dx, [bp + 10];color
 
-    d_l:
+    @@loop:
         push ax
         push bx
         push cx
@@ -135,7 +132,7 @@ proc draw_line
         pop ax
 
         inc ax
-        loop d_l
+        loop @@loop
     pop bp
     ret
 
@@ -149,7 +146,7 @@ proc draw_ball
     mov bx, [bp + 6] ; Y
     mov dx, [bp + 8] ; color
     mov cx, [BsizeX]
-    b_l:
+    @@loop:
         push ax
         push bx
         push cx
@@ -167,7 +164,7 @@ proc draw_ball
         pop bx
         pop ax
         inc bx
-    loop b_l
+    loop @@loop
 
 
     pop bp
@@ -181,9 +178,8 @@ proc draw_ctrl
 
     mov ax, [bp + 4] ; X
     mov bx, [bp + 6] ; Y
-    mov dx, [bp + 8]
     mov cx, 2
-    ctrl_l:
+    @@loop:
         push ax
         push bx
         push cx
@@ -201,7 +197,7 @@ proc draw_ctrl
         pop bx
         pop ax
         inc bx
-    loop ctrl_l
+    loop @@loop
     pop bp
     ret
 endp draw_ctrl
@@ -283,8 +279,8 @@ proc handle_input
     je down1
     cmp ax, DOWN_CTRL_2
     je down2
-    mov ah,08h              
-    int 21h
+    ;mov ah,08h              
+    ;int 21h
     ret
     die:
         call shutdown
@@ -322,7 +318,7 @@ proc draw_board
     push bp
     mov bp, sp
     push ax
-    draw_b:
+    @@draw_ball:
         push 400
         push BallY
         push BallX
@@ -331,7 +327,7 @@ proc draw_board
         pop ax
         pop ax
     ; draw ctrl1
-    draw_1:
+    @@draw_1:
         push 500
         push 2
         push loc1
@@ -340,7 +336,7 @@ proc draw_board
         pop ax
         pop ax
     ; draw ctrl2
-    draw_2:
+    @@draw_2:
         push 500
         push 315
         push loc2
@@ -352,23 +348,7 @@ proc draw_board
     pop bp
     ret
 endp draw_board
-proc shouldUpadteLoad
-    mov ah, 2Ch
-    int 21h
-    mov nextUpdate, dl
-    add nextUpdate, 50
-    ret
-endp shouldUpadteLoad
-proc updateBall
-    mov ah, 2Ch
-    int 21h
-    cmp dl, nextUpdate
-    jb endF
-    call moveBall
-    call shouldUpadteLoad
-    endF:
-    ret
-endp updateBall
+
 proc delay
     mov cx, 00
     mov dx, 08235h
@@ -392,7 +372,7 @@ start:
         push ax
         call handle_input
         pop ax
-        ;call moveBall
+        call moveBall
         call delay
         call refrash
     jmp game_l   
