@@ -10,6 +10,9 @@ BsizeY dw 4
 loc1 dw 50
 loc2 dw 50
 
+ctr1Up dw 0
+ctr2Up dw 0
+
 ; ball location
 BallX dw 50
 BallY dw 120
@@ -18,11 +21,13 @@ BallUp db 1
 BallLeft db 1
 
 ; ball speed
-XSpeed dw 5
-YSpeed dw 5
+XSpeed dw 2
+YSpeed dw 2
 
 ; ball shuld update:
-nextUpdate db 0
+shouldIncSpeed dw 0
+Player1 db "Player 1 scored!",10,13,'$'
+Player2 db "Player 2 scored!", 10, 13, '$'
 ; key codes:
 NO_KEY equ 0
 UP_CTRL_1 equ 1
@@ -39,22 +44,67 @@ proc startup
 endp startup
 proc moveBall
 ; moves the ball in both axias
+    mov ax, [YSpeed]
     cmp [BallUp], 0
     je @@goUp
-    add [BallY], 5
+    add [BallY], ax
     jmp @@nextX
     @@goUp:
-        sub [BallY], 5
+        sub [BallY], ax
     @@nextX:
+    mov bx, [XSpeed]
     cmp [BallLeft], 0
-    je @@goLeft
-    add [BallX], 5
-    jmp @@initNextR
-    @@goLeft:
-        sub [BallX], 5
-    @@initNextR:
-    cmp [BallX], 315
-    jge @@setLeft0
+    jne @@moveRight
+    sub [BallX], bx
+    jmp @@checkNextRender
+    @@moveRight:
+        add [BallX], bx
+    @@checkNextRender:
+    cmp [BallY], 5h
+    jg @@noHitWallUp
+    mov [BallUp], 1
+    @@noHitWallUp:
+    cmp [BallY], 200d
+    jl @@noHitWallDown
+    mov [BallUp], 0
+    @@noHitWallDown:
+    cmp [BallX], 10
+    jl @@testCtrlLeft
+    cmp [BallX], 310
+    jg @@testCtrlRight
+    ret
+    @@testCtrlLeft:
+        mov ax, [loc1]
+        jmp @@comp
+    @@testCtrlRight:
+        mov ax, [loc2]
+    @@comp:
+    mov bx, [BallY]
+    cmp ax, bx
+    jle @@fitRDwon
+    ret
+    @@fitRDwon:
+    add ax, 40
+    cmp ax, bx
+    jge @@inCtrl
+    ret
+    @@inCtrl:
+    cmp [shouldIncSpeed], 0
+    je @@noInc
+    inc [XSpeed]
+    mov [shouldIncSpeed], 0
+    jmp @@nextCheck
+    @@noInc:
+    mov [shouldIncSpeed], 1
+    @@nextCheck:
+    mov [BallUp], 0
+    cmp [BallLeft], 0
+    je @@nextL
+    mov [BallLeft], 0
+    ret
+    @@nextL:
+    mov [BallLeft], 1
+    ret
     
 endp moveBall
 proc checkScore ; checks if player scored and prints a message
@@ -65,27 +115,46 @@ proc checkScore ; checks if player scored and prints a message
     jg Scored2
     ret
     Scored1:
-        mov ax, 1
+        mov bx, 1
         jmp pMsg
     Scored2:
-        mov ax, 0
+        mov bx, 0
     pMsg:
-    call shutdown
+    mov [XSpeed], 2
+    ;call shutdown
     ; print message:
-    cmp ax, 0
-    je msg1
-    jne msg2
-    msg1:
-        mov dx, offset msg1
+    cmp bx, 0
+    je @@msg1
+    jne @@msg2
+    @@msg1:
+        mov [BallLeft], 1
+        mov dx, offset Player1
         jmp @@printM
-    msg2:
-        mov dx, offset msg2
+    @@msg2:
+        mov [BallLeft], 0
+        mov dx, offset Player2
     @@printM:
-    mov ah, 09
-    int 16h
+    mov ah, 13h
+    push es
+    push bp
+    mov bx, ds
+    mov es, bx
+    mov bp, dx
+    mov cx, 16
+    xor dx, dx
+    mov bl, 0Fh
+    int 10h
+    pop bp
+    pop es
     ; wait for key
-    mov ah, 07
+    @@waitI:
+    mov ah,1
     int 21h
+    cmp al,13d
+    jne @@waitI
+    mov [BallX], 120
+    mov [BallY], 150
+    call startup
     ret
 endp checkScore
 
@@ -319,9 +388,9 @@ proc draw_board
     mov bp, sp
     push ax
     @@draw_ball:
-        push 400
-        push BallY
+        push 300
         push BallX
+        push BallY
         call draw_ball
         pop ax
         pop ax
@@ -364,7 +433,6 @@ start:
 ; Your code here
 ; --------------------------
 	call startup
-    call shouldUpadteLoad
 
     game_l:
         call draw_board 
@@ -373,6 +441,7 @@ start:
         call handle_input
         pop ax
         call moveBall
+        call checkScore
         call delay
         call refrash
     jmp game_l   
