@@ -91,6 +91,8 @@ proc moveBall
     @@inCtrl:
     cmp [shouldIncSpeed], 0
     je @@noInc
+    cmp [XSpeed], 7
+    je @@noInc
     inc [XSpeed]
     mov [shouldIncSpeed], 0
     jmp @@nextCheck
@@ -101,8 +103,10 @@ proc moveBall
     cmp [BallLeft], 0
     je @@nextL
     mov [BallLeft], 0
+    dec [BallX]
     ret
     @@nextL:
+    inc [BallX]
     mov [BallLeft], 1
     ret
     
@@ -140,7 +144,7 @@ proc checkScore ; checks if player scored and prints a message
     mov bx, ds
     mov es, bx
     mov bp, dx
-    mov cx, 16
+    mov cx, 18
     xor dx, dx
     mov bl, 0Fh
     int 10h
@@ -148,8 +152,11 @@ proc checkScore ; checks if player scored and prints a message
     pop es
     ; wait for key
     @@waitI:
-    mov ah,1
-    int 21h
+    mov ah, 1
+    int 16h
+    jz @@waitI
+    mov ah, 0
+    int 16h
     cmp al,13d
     jne @@waitI
     mov [BallX], 120
@@ -278,21 +285,12 @@ proc shutdown
     ret
 endp shutdown
 proc refrash
-    push ax
-    push cx
-    push di 
-    push es
-    mov ax, 0A000h
-    mov es, ax
-    xor di, di
-    xor ax, ax
-    mov cx, 32000d
-    cld
-    rep stosw
-    pop es
-    pop di
-    pop cx
-    pop ax
+    mov AH, 06h    ; Scroll up function
+    xor AL, AL     ; Clear entire screen
+    xor CX, CX     ; Upper left corner CH=row, CL=column
+    mov DX, 184FH  ; lower right corner DH=row, DL=column 
+    mov BH, 00    ; YellowOnBlue
+    int 10H
     ret
 endp refrash
 proc getInput ; result will be in ax

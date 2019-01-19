@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "run",
+            "label": "deploy",
             "type": "shell",
             "command": "cp",
             "args": [
@@ -15,6 +15,29 @@
                 "kind": "build",
                 "isDefault": true
             }
+        },
+        {
+            "label": "run",
+            "type": "shell",
+            "command": "dosbox",
+            "args": [
+                "-c",
+                "\"run",
+                "${fileBasenameNoExtension}\""
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "test",
+            "dependsOn": [
+                "deploy",
+                "run"
+            ],
+            "command": "echo running!"
         }
     ]
 }
