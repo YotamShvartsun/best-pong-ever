@@ -132,7 +132,7 @@ proc moveBall
     jle @@fitRDwon
     ret
     @@fitRDwon:
-    add ax, 40
+    add ax, 41
     cmp ax, bx
     jge @@inCtrl
     ret
@@ -172,8 +172,9 @@ proc checkScore ; checks if player scored and prints a message
     ; move to bx the player who won:
     Scored1:
         ; check if someone won
-        inc [Score1]
-        cmp [Score1], 10
+        mov [XSpeed], 2
+        inc [Score2]
+        cmp [Score2], 10
         je @@p1Won
         jmp @@waitI
         @@p1Won:
@@ -181,8 +182,9 @@ proc checkScore ; checks if player scored and prints a message
         mov bx, 1
         jmp pMsg
     Scored2:
-        inc [Score2]
-        cmp [Score2], 10
+    mov [XSpeed], 2
+        inc [Score1]
+        cmp [Score1], 10
         je @@p2Won
         jmp @@waitI
         @@p2Won:
