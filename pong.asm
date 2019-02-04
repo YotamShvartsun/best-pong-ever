@@ -132,7 +132,7 @@ proc moveBall
     jle @@fitRDwon
     ret
     @@fitRDwon:
-    add ax, 41
+    add ax, 45
     cmp ax, bx
     jge @@inCtrl
     ret
@@ -441,30 +441,30 @@ proc handle_input
     ; ctrl movement:
     up1:
         ; make sure ctrl can go up
-        cmp loc1, 5h
+        cmp [loc1], 5h
         js nu1
-        sub loc1, 5
+        sub [loc1], 5
         nu1:
         ret
     up2:
         ; make sure ctrl2 can go up
-        cmp loc2, 5h
+        cmp [loc2], 5h
         js nu2
-        sub loc2, 5
+        sub [loc2], 5
         nu2:
         ret
     down1:
         ; make sure ctrl1 can go down
-        cmp loc1, 155d
+        cmp [loc1], 155d
         jg nd1
-        add loc1, 5
+        add [loc1], 5
         nd1:
         ret
     down2:
         ; make sure ctrl2 can go down
-        cmp loc2, 155d
+        cmp [loc2], 155d
         jg nd2
-        add loc2, 5
+        add [loc2], 5
         nd2:
         ret
     ret
@@ -481,8 +481,8 @@ proc draw_board
     @@draw_ball:
         ; color
         push 300
-        push BallX
-        push BallY
+        push [BallX]
+        push [BallY]
         call draw_ball
         pop ax
         pop ax
@@ -492,7 +492,7 @@ proc draw_board
     ;color
         push 500
         push 2
-        push loc1
+        push [loc1]
         call draw_ctrl
         pop ax
         pop ax
@@ -502,7 +502,7 @@ proc draw_board
     ;color
         push 500
         push 315
-        push loc2
+        push [loc2]
         call draw_ctrl
         pop ax
         pop ax

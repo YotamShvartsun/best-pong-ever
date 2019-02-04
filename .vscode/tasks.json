@@ -19,12 +19,7 @@
         {
             "label": "run",
             "type": "shell",
-            "command": "dosbox",
-            "args": [
-                "-c",
-                "\"run",
-                "${fileBasenameNoExtension}\""
-            ],
+            "command": "dosbox -c 'run ${fileBasenameNoExtension}'",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -37,7 +32,7 @@
                 "deploy",
                 "run"
             ],
-            "command": "echo running!"
+            "command": "echo"
         }
     ]
 }
