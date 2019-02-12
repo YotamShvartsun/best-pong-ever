@@ -212,7 +212,7 @@ proc checkScore ; checks if player scored and prints a message
     mov bx, ds
     mov es, bx
     mov bp, dx
-    mov cx, 18
+    mov cx, 15
     xor dx, dx
     mov bl, 0Fh
     int 10h
