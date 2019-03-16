@@ -11,10 +11,10 @@ I sure hope so!
 ### What I've got so far:
 - you can control these little players and move them around
 - you can draw a ball whereever you want
-
-### Whats next?
 - actually move the ball
 - count points
+
+### Whats next?
 - get an A+
 
 ### Sounds nice, can I try it?
