@@ -13,9 +13,9 @@ I sure hope so!
 - you can draw a ball whereever you want
 - actually move the ball
 - count points
-
-### Whats next?
 - get an A+
+### Whats next?
+- I have no idea!
 
 ### Sounds nice, can I try it?
 Yes! Just clone this repo, compile the code in pong.asm and you are good to go!
